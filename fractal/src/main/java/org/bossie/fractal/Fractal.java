@@ -6,48 +6,55 @@ import javax.imageio.ImageIO;
 
 public class Fractal {
 	public static void main(String[] args) throws Exception {
-		RenderedImage image = mandelbrot(600, 800);
-		ImageIO.write(image, "png", new File("/tmp/mandelbrot.png"));
+		RenderedImage image = mandelbrot(800, 700);
+
+		File out = new File("/tmp/mandelbrot.png");
+		ImageIO.write(image, "png", out);
+
+		System.out.println("Done writing " + out);
 	}
 
-	private static RenderedImage mandelbrot(int rows, int cols) {
-		final double xmin = -2.0;
-		final double xmax = 1.0;
-		final double xstep = (xmax - xmin) / cols;
+	private static RenderedImage mandelbrot(int width, int height) {
+		final double xmin = -2.05;
+		final double xmax = 0.5;
+		final double xstep = (xmax - xmin) / width;
 
-		final double ymin = -1;
-		final double ymax = 1;
-		final double ystep = (ymax - ymin) / rows;
+		final double ymin = -1.1;
+		final double ymax = 1.1;
+		final double ystep = (ymax - ymin) / height;
 
 		final int maxIt = 0xFF;
 
-		BufferedImage image = new BufferedImage(cols, rows, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-		for (int row = 0; row < rows; ++row) {
-			for (int col = 0; col < cols; ++col) {
-				int it = iterations(col * xstep + xmin, (rows - row) * ystep + ymin, maxIt);
-				image.setRGB(col, row, it << 16 | it << 8 | it);
+		for (int j = 0; j < height; ++j) {
+			for (int i = 0; i < width; ++i) {
+				int it = iterations(i * xstep + xmin, (height - j) * ystep + ymin, maxIt);
+				image.setRGB(i, j, color(it));
 			}
 		}
 
 		return image;
 	}
 
+	private static int color(int it) {
+		return it << 16 | it << 8 | it;
+	}
+
 	private static int iterations(double x0, double y0, int max) {
 		double x = 0;
 		double y = 0;
 
-		int i = 0;
-		double tx, ty;
+		int it = 0;
 
 		do {
-			tx = x * x - y * y + x0;
-			ty = 2 * x * y + y0;
+			double tx = x * x - y * y + x0;
+			double ty = 2 * x * y + y0;
 
 			x = tx;
 			y = ty;
-		} while (tx * tx + ty * ty <= 4.0 && ++i < max);
+		} while (++it < max && x * x + y * y <= 4.0);
 
-		return i;
+		return it;
 	}
 }
